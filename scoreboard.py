@@ -19,8 +19,7 @@ class Scoreboard:
     rounds: list[dict] = field(default_factory=list)
 
     def record_win(self, side: str) -> None:
-        """
-        Record a win for the given side.
+        """Record a win for the given side.
 
         Args:
             side: Either "left" or "right".
@@ -38,15 +37,16 @@ class Scoreboard:
         else:
             self.right_wins += 1
 
-        self.rounds.append({
-            "round": len(self.rounds) + 1,
-            "winner": side,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        self.rounds.append(
+            {
+                "round": len(self.rounds) + 1,
+                "winner": side,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
     def save(self, path: str = settings.scores_file) -> None:
-        """
-        Save scoreboard to JSON file.
+        """Save scoreboard to JSON file.
 
         Args:
             path: File path for the JSON file.
@@ -61,8 +61,7 @@ class Scoreboard:
 
     @classmethod
     def load(cls, path: str = settings.scores_file) -> "Scoreboard":
-        """
-        Load scoreboard from JSON file.
+        """Load scoreboard from JSON file.
 
         If the file doesn't exist or is corrupt, returns a
         fresh Scoreboard.

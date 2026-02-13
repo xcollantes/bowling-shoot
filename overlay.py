@@ -12,8 +12,7 @@ def draw_regions(
     left_region: Region,
     right_region: Region,
 ) -> np.ndarray:
-    """
-    Draw labeled rectangles for both table regions.
+    """Draw labeled rectangles for both table regions.
 
     Args:
         frame: The current video frame.
@@ -24,9 +23,7 @@ def draw_regions(
         Frame with region rectangles drawn.
     """
     _draw_region_rect(frame, left_region, settings.color_left, "LEFT")
-    _draw_region_rect(
-        frame, right_region, settings.color_right, "RIGHT"
-    )
+    _draw_region_rect(frame, right_region, settings.color_right, "RIGHT")
     return frame
 
 
@@ -60,8 +57,7 @@ def draw_pin_markers(
     bounding_boxes: list[tuple[int, int, int, int]],
     color: tuple[int, int, int],
 ) -> np.ndarray:
-    """
-    Draw rectangles around each detected pin.
+    """Draw rectangles around each detected pin.
 
     Args:
         frame: The current video frame.
@@ -72,9 +68,7 @@ def draw_pin_markers(
         Frame with pin markers drawn.
     """
     for x, y, w, h in bounding_boxes:
-        cv2.rectangle(
-            frame, (x, y), (x + w, y + h), color, 2
-        )
+        cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
     return frame
 
 
@@ -84,8 +78,7 @@ def draw_scoreboard(
     right_pins: int,
     scoreboard: Scoreboard,
 ) -> np.ndarray:
-    """
-    Draw the HUD overlay with pin counts and win totals.
+    """Draw the HUD overlay with pin counts and win totals.
 
     Renders a semi-transparent bar at the top of the frame
     showing current pin counts and overall score.
@@ -104,29 +97,39 @@ def draw_scoreboard(
 
     # Semi-transparent background bar
     overlay = frame.copy()
-    cv2.rectangle(
-        overlay, (0, 0), (w, bar_height), settings.color_bg, -1
-    )
+    cv2.rectangle(overlay, (0, 0), (w, bar_height), settings.color_bg, -1)
     cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
 
     left_text = f"LEFT: {left_pins} pins"
     right_text = f"RIGHT: {right_pins} pins"
-    score_text = (
-        f"Score: {scoreboard.left_wins}"
-        f" - {scoreboard.right_wins}"
-    )
+    score_text = f"Score: {scoreboard.left_wins} - {scoreboard.right_wins}"
 
     cv2.putText(
-        frame, left_text, (10, 35),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.8, settings.color_left, 2,
+        frame,
+        left_text,
+        (10, 35),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.8,
+        settings.color_left,
+        2,
     )
     cv2.putText(
-        frame, score_text, (w // 2 - 60, 35),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.8, settings.color_text, 2,
+        frame,
+        score_text,
+        (w // 2 - 60, 35),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.8,
+        settings.color_text,
+        2,
     )
     cv2.putText(
-        frame, right_text, (w - 250, 35),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.8, settings.color_right, 2,
+        frame,
+        right_text,
+        (w - 250, 35),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.8,
+        settings.color_right,
+        2,
     )
     return frame
 
@@ -135,8 +138,7 @@ def draw_winner(
     frame: np.ndarray,
     side: str,
 ) -> np.ndarray:
-    """
-    Draw large winner announcement in the center.
+    """Draw large winner announcement in the center.
 
     Args:
         frame: The current video frame.
@@ -159,15 +161,18 @@ def draw_winner(
     )
     cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
 
-    text_size = cv2.getTextSize(
-        text, cv2.FONT_HERSHEY_SIMPLEX, 2.0, 4
-    )[0]
+    text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 2.0, 4)[0]
     text_x = (w - text_size[0]) // 2
     text_y = (h + text_size[1]) // 2
 
     cv2.putText(
-        frame, text, (text_x, text_y),
-        cv2.FONT_HERSHEY_SIMPLEX, 2.0, settings.color_winner, 4,
+        frame,
+        text,
+        (text_x, text_y),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        2.0,
+        settings.color_winner,
+        4,
     )
     return frame
 
@@ -176,8 +181,7 @@ def draw_instructions(
     frame: np.ndarray,
     text: str,
 ) -> np.ndarray:
-    """
-    Draw instruction text at the bottom of the frame.
+    """Draw instruction text at the bottom of the frame.
 
     Args:
         frame: The current video frame.
@@ -190,13 +194,16 @@ def draw_instructions(
 
     # Semi-transparent background
     overlay = frame.copy()
-    cv2.rectangle(
-        overlay, (0, h - 40), (w, h), settings.color_bg, -1
-    )
+    cv2.rectangle(overlay, (0, h - 40), (w, h), settings.color_bg, -1)
     cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
 
     cv2.putText(
-        frame, text, (10, h - 12),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.6, settings.color_text, 1,
+        frame,
+        text,
+        (10, h - 12),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.6,
+        settings.color_text,
+        1,
     )
     return frame

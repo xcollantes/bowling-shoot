@@ -31,3 +31,8 @@ extend-select = [
 # Pydocstyle configuration for docstring formatting conventions
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.1",
+]

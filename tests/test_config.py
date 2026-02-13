@@ -30,9 +30,7 @@ def test_hsv_upper_in_valid_range():
 
 def test_hsv_lower_below_upper():
     """Test that lower thresholds are <= upper thresholds."""
-    for lower, upper in zip(
-        settings.hsv_lower, settings.hsv_upper
-    ):
+    for lower, upper in zip(settings.hsv_lower, settings.hsv_upper):
         assert lower <= upper
 
 

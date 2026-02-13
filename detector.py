@@ -10,8 +10,7 @@ def detect_pins(
     frame: np.ndarray,
     region: Region,
 ) -> tuple[int, list[tuple[int, int, int, int]]]:
-    """
-    Count bowling pins in the given region of the frame.
+    """Count bowling pins in the given region of the frame.
 
     Uses HSV color thresholding to isolate white objects,
     applies morphological operations to reduce noise, then
@@ -40,14 +39,13 @@ def _extract_roi(
 ) -> np.ndarray:
     """Extract the region of interest from the frame."""
     return frame[
-        region.y:region.y + region.h,
-        region.x:region.x + region.w,
+        region.y : region.y + region.h,
+        region.x : region.x + region.w,
     ]
 
 
 def _threshold_white(roi: np.ndarray) -> np.ndarray:
-    """
-    Apply HSV thresholding to isolate white objects.
+    """Apply HSV thresholding to isolate white objects.
 
     Converts ROI to HSV color space, applies inRange with
     configured thresholds, then applies morphological close
@@ -78,8 +76,7 @@ def _find_pin_contours(
     mask: np.ndarray,
     region: Region,
 ) -> list[tuple[int, int, int, int]]:
-    """
-    Find contours in the mask and return bounding boxes.
+    """Find contours in the mask and return bounding boxes.
 
     Filters contours by MIN_PIN_AREA. Returns bounding boxes
     in full-frame coordinates (offset by region position).
@@ -98,10 +95,12 @@ def _find_pin_contours(
     for contour in contours:
         if cv2.contourArea(contour) >= settings.min_pin_area:
             x, y, w, h = cv2.boundingRect(contour)
-            boxes.append((
-                x + region.x,
-                y + region.y,
-                w,
-                h,
-            ))
+            boxes.append(
+                (
+                    x + region.x,
+                    y + region.y,
+                    w,
+                    h,
+                )
+            )
     return boxes

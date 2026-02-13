@@ -9,7 +9,7 @@ import sys
 
 import cv2
 
-from config import settings
+from config import Region, settings
 from detector import detect_pins
 from overlay import (
     draw_instructions,
@@ -18,7 +18,6 @@ from overlay import (
     draw_scoreboard,
     draw_winner,
 )
-from config import Region
 from region import _RedrawRequested, select_regions
 from scoreboard import Scoreboard
 
@@ -32,8 +31,7 @@ logger = logging.getLogger(__name__)
 def open_camera(
     device_index: int = settings.camera_index,
 ) -> cv2.VideoCapture:
-    """
-    Open and configure the camera.
+    """Open and configure the camera.
 
     Args:
         device_index: Camera device index.
@@ -46,9 +44,7 @@ def open_camera(
     """
     cap = cv2.VideoCapture(device_index)
     if not cap.isOpened():
-        raise RuntimeError(
-            f"Cannot open camera at index {device_index}"
-        )
+        raise RuntimeError(f"Cannot open camera at index {device_index}")
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, settings.frame_width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, settings.frame_height)
     logger.info(
@@ -64,8 +60,7 @@ def calibrate_pins(
     left_region: Region,
     right_region: Region,
 ) -> tuple[int, int]:
-    """
-    Auto-detect initial pin count from a calibration frame.
+    """Auto-detect initial pin count from a calibration frame.
 
     Shows the detected pin count and lets user confirm or
     wait for pins to be set up properly.
@@ -83,33 +78,26 @@ def calibrate_pins(
         if not ret:
             return 0, 0
 
-        left_pins, left_boxes = detect_pins(
-            frame, left_region
-        )
-        right_pins, right_boxes = detect_pins(
-            frame, right_region
-        )
+        left_pins, left_boxes = detect_pins(frame, left_region)
+        right_pins, right_boxes = detect_pins(frame, right_region)
 
         frame = draw_regions(frame, left_region, right_region)
-        frame = draw_pin_markers(
-            frame, left_boxes, settings.color_left
-        )
-        frame = draw_pin_markers(
-            frame, right_boxes, settings.color_right
-        )
+        frame = draw_pin_markers(frame, left_boxes, settings.color_left)
+        frame = draw_pin_markers(frame, right_boxes, settings.color_right)
 
-        info = (
-            f"Detected: LEFT={left_pins} RIGHT={right_pins}"
-        )
+        info = f"Detected: LEFT={left_pins} RIGHT={right_pins}"
         cv2.putText(
-            frame, info, (10, 35),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.8,
-            (255, 255, 255), 2,
+            frame,
+            info,
+            (10, 35),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (255, 255, 255),
+            2,
         )
         frame = draw_instructions(
             frame,
-            "SPACE=start round | Q=quit | "
-            "Adjust pins until counts are correct",
+            "SPACE=start round | Q=quit | Adjust pins until counts are correct",
         )
 
         cv2.imshow(settings.window_name, frame)
@@ -118,7 +106,8 @@ def calibrate_pins(
         if key == ord(" "):
             logger.info(
                 "Round starting: LEFT=%d RIGHT=%d pins",
-                left_pins, right_pins,
+                left_pins,
+                right_pins,
             )
             return left_pins, right_pins
         if key == ord("q"):
@@ -131,8 +120,7 @@ def run_round(
     right_region: Region,
     scoreboard: Scoreboard,
 ) -> str | None:
-    """
-    Run a single round of pin tracking.
+    """Run a single round of pin tracking.
 
     Continuously captures frames, detects pins in both
     regions, draws overlays, and checks for a winner.
@@ -158,12 +146,8 @@ def run_round(
             logger.error("Camera feed lost during round.")
             return None
 
-        left_pins, left_boxes = detect_pins(
-            frame, left_region
-        )
-        right_pins, right_boxes = detect_pins(
-            frame, right_region
-        )
+        left_pins, left_boxes = detect_pins(frame, left_region)
+        right_pins, right_boxes = detect_pins(frame, right_region)
 
         # Track consecutive zero-pin frames
         if left_pins == 0:
@@ -177,21 +161,11 @@ def run_round(
             right_zero_count = 0
 
         # Draw overlays
-        frame = draw_regions(
-            frame, left_region, right_region
-        )
-        frame = draw_pin_markers(
-            frame, left_boxes, settings.color_left
-        )
-        frame = draw_pin_markers(
-            frame, right_boxes, settings.color_right
-        )
-        frame = draw_scoreboard(
-            frame, left_pins, right_pins, scoreboard
-        )
-        frame = draw_instructions(
-            frame, "ROUND IN PROGRESS | Q=quit"
-        )
+        frame = draw_regions(frame, left_region, right_region)
+        frame = draw_pin_markers(frame, left_boxes, settings.color_left)
+        frame = draw_pin_markers(frame, right_boxes, settings.color_right)
+        frame = draw_scoreboard(frame, left_pins, right_pins, scoreboard)
+        frame = draw_instructions(frame, "ROUND IN PROGRESS | Q=quit")
 
         # Check for winner
         if left_zero_count >= settings.zero_pin_frame_threshold:
@@ -217,8 +191,7 @@ def run_round(
 def _select_regions_with_redraw(
     cap: cv2.VideoCapture,
 ) -> tuple[Region, Region]:
-    """
-    Select regions, handling redraw requests.
+    """Select regions, handling redraw requests.
 
     Wraps select_regions to catch _RedrawRequested and
     restart the selection process.
@@ -237,8 +210,7 @@ def _select_regions_with_redraw(
 
 
 def main() -> None:
-    """
-    Main entry point for the bowling pin tracker.
+    """Main entry point for the bowling pin tracker.
 
     Flow:
         1. Open camera
@@ -251,9 +223,7 @@ def main() -> None:
     scoreboard = Scoreboard.load()
 
     try:
-        left_region, right_region = (
-            _select_regions_with_redraw(cap)
-        )
+        left_region, right_region = _select_regions_with_redraw(cap)
     except ValueError as e:
         logger.info("Setup cancelled: %s", e)
         cap.release()
@@ -262,7 +232,8 @@ def main() -> None:
 
     logger.info(
         "Regions set. LEFT=%s RIGHT=%s",
-        left_region, right_region,
+        left_region,
+        right_region,
     )
 
     try:
@@ -273,9 +244,7 @@ def main() -> None:
             if left_count == -1:
                 break
 
-            winner = run_round(
-                cap, left_region, right_region, scoreboard
-            )
+            winner = run_round(cap, left_region, right_region, scoreboard)
 
             if winner:
                 scoreboard.record_win(winner)
@@ -302,8 +271,7 @@ def _post_round_menu(
     cap: cv2.VideoCapture,
     scoreboard: Scoreboard,
 ) -> bool:
-    """
-    Show post-round options and wait for user input.
+    """Show post-round options and wait for user input.
 
     Args:
         cap: Opened VideoCapture.
@@ -317,9 +285,7 @@ def _post_round_menu(
         if not ret:
             return False
 
-        frame = draw_scoreboard(
-            frame, 0, 0, scoreboard
-        )
+        frame = draw_scoreboard(frame, 0, 0, scoreboard)
         frame = draw_instructions(
             frame,
             "SPACE=next round | S=reset scores | Q=quit",

@@ -9,8 +9,7 @@ from config import Region, settings
 def select_regions(
     cap: cv2.VideoCapture,
 ) -> tuple[Region, Region]:
-    """
-    Display live camera feed and let user draw two regions.
+    """Display live camera feed and let user draw two regions.
 
     The user clicks and drags to draw rectangles. First draw
     defines the left table region, second defines the right.
@@ -33,9 +32,7 @@ def select_regions(
     }
 
     cv2.namedWindow(settings.window_name)
-    cv2.setMouseCallback(
-        settings.window_name, _mouse_callback, state
-    )
+    cv2.setMouseCallback(settings.window_name, _mouse_callback, state)
 
     labels = ["LEFT", "RIGHT"]
     colors = [settings.color_left, settings.color_right]
@@ -46,9 +43,7 @@ def select_regions(
             raise ValueError("Camera feed lost.")
 
         idx = len(state["regions"])
-        frame = _draw_selection_overlay(
-            frame, state, labels, colors
-        )
+        frame = _draw_selection_overlay(frame, state, labels, colors)
         _draw_prompt(frame, f"Draw {labels[idx]} region")
 
         cv2.imshow(settings.window_name, frame)
@@ -97,8 +92,7 @@ def _build_region(
     start: tuple[int, int],
     end: tuple[int, int],
 ) -> Region | None:
-    """
-    Build a Region from two corner points.
+    """Build a Region from two corner points.
 
     Returns None if the region is too small.
 
@@ -126,8 +120,7 @@ def _draw_selection_overlay(
     labels: list[str],
     colors: list[tuple[int, int, int]],
 ) -> np.ndarray:
-    """
-    Draw completed regions and current drag preview.
+    """Draw completed regions and current drag preview.
 
     Args:
         frame: The current video frame.
@@ -147,9 +140,13 @@ def _draw_selection_overlay(
             2,
         )
         cv2.putText(
-            frame, labels[i],
+            frame,
+            labels[i],
             (region.x + 5, region.y - 10),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.7, colors[i], 2,
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            colors[i],
+            2,
         )
 
     # Draw current drag rectangle
@@ -171,8 +168,13 @@ def _draw_prompt(frame: np.ndarray, text: str) -> None:
     h = frame.shape[0]
     prompt = f"{text} (click & drag) | R=reset | Q=quit"
     cv2.putText(
-        frame, prompt, (10, h - 15),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.6, settings.color_text, 1,
+        frame,
+        prompt,
+        (10, h - 15),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.6,
+        settings.color_text,
+        1,
     )
 
 
@@ -182,8 +184,7 @@ def _show_confirmation(
     labels: list[str],
     colors: list[tuple[int, int, int]],
 ) -> None:
-    """
-    Show both regions and wait for Enter to confirm.
+    """Show both regions and wait for Enter to confirm.
 
     Args:
         cap: OpenCV VideoCapture.
@@ -196,15 +197,16 @@ def _show_confirmation(
         if not ret:
             break
 
-        frame = _draw_selection_overlay(
-            frame, state, labels, colors
-        )
+        frame = _draw_selection_overlay(frame, state, labels, colors)
         h = frame.shape[0]
         cv2.putText(
             frame,
             "Press ENTER to confirm | R to redraw",
             (10, h - 15),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.6, settings.color_text, 1,
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            settings.color_text,
+            1,
         )
         cv2.imshow(settings.window_name, frame)
 
