@@ -3,14 +3,7 @@
 import cv2
 import numpy as np
 
-from config import (
-    COLOR_BG,
-    COLOR_LEFT,
-    COLOR_RIGHT,
-    COLOR_TEXT,
-    COLOR_WINNER,
-    Region,
-)
+from config import Region, settings
 from scoreboard import Scoreboard
 
 
@@ -30,9 +23,9 @@ def draw_regions(
     Returns:
         Frame with region rectangles drawn.
     """
-    _draw_region_rect(frame, left_region, COLOR_LEFT, "LEFT")
+    _draw_region_rect(frame, left_region, settings.color_left, "LEFT")
     _draw_region_rect(
-        frame, right_region, COLOR_RIGHT, "RIGHT"
+        frame, right_region, settings.color_right, "RIGHT"
     )
     return frame
 
@@ -112,7 +105,7 @@ def draw_scoreboard(
     # Semi-transparent background bar
     overlay = frame.copy()
     cv2.rectangle(
-        overlay, (0, 0), (w, bar_height), COLOR_BG, -1
+        overlay, (0, 0), (w, bar_height), settings.color_bg, -1
     )
     cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
 
@@ -125,15 +118,15 @@ def draw_scoreboard(
 
     cv2.putText(
         frame, left_text, (10, 35),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.8, COLOR_LEFT, 2,
+        cv2.FONT_HERSHEY_SIMPLEX, 0.8, settings.color_left, 2,
     )
     cv2.putText(
         frame, score_text, (w // 2 - 60, 35),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.8, COLOR_TEXT, 2,
+        cv2.FONT_HERSHEY_SIMPLEX, 0.8, settings.color_text, 2,
     )
     cv2.putText(
         frame, right_text, (w - 250, 35),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.8, COLOR_RIGHT, 2,
+        cv2.FONT_HERSHEY_SIMPLEX, 0.8, settings.color_right, 2,
     )
     return frame
 
@@ -161,7 +154,7 @@ def draw_winner(
         overlay,
         (w // 4, h // 3),
         (3 * w // 4, 2 * h // 3),
-        COLOR_BG,
+        settings.color_bg,
         -1,
     )
     cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
@@ -174,7 +167,7 @@ def draw_winner(
 
     cv2.putText(
         frame, text, (text_x, text_y),
-        cv2.FONT_HERSHEY_SIMPLEX, 2.0, COLOR_WINNER, 4,
+        cv2.FONT_HERSHEY_SIMPLEX, 2.0, settings.color_winner, 4,
     )
     return frame
 
@@ -198,12 +191,12 @@ def draw_instructions(
     # Semi-transparent background
     overlay = frame.copy()
     cv2.rectangle(
-        overlay, (0, h - 40), (w, h), COLOR_BG, -1
+        overlay, (0, h - 40), (w, h), settings.color_bg, -1
     )
     cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
 
     cv2.putText(
         frame, text, (10, h - 12),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.6, COLOR_TEXT, 1,
+        cv2.FONT_HERSHEY_SIMPLEX, 0.6, settings.color_text, 1,
     )
     return frame

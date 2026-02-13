@@ -3,7 +3,7 @@
 import cv2
 import numpy as np
 
-from config import MIN_PIN_AREA, Region
+from config import Region, settings
 from detector import detect_pins
 
 
@@ -43,8 +43,8 @@ def test_detect_single_pin():
     """Test detection of a single white rectangle."""
     frame = _make_frame()
     # Draw a white rectangle large enough to exceed
-    # MIN_PIN_AREA
-    size = int(MIN_PIN_AREA ** 0.5) + 10
+    # settings.min_pin_area
+    size = int(settings.min_pin_area ** 0.5) + 10
     _draw_white_rect(frame, 100, 100, size, size)
     region = Region(x=0, y=0, w=640, h=480)
     count, boxes = detect_pins(frame, region)
@@ -55,7 +55,7 @@ def test_detect_single_pin():
 def test_detect_multiple_pins():
     """Test detection of multiple separated white rects."""
     frame = _make_frame()
-    size = int(MIN_PIN_AREA ** 0.5) + 10
+    size = int(settings.min_pin_area ** 0.5) + 10
     _draw_white_rect(frame, 50, 50, size, size)
     _draw_white_rect(frame, 200, 50, size, size)
     _draw_white_rect(frame, 350, 50, size, size)
@@ -65,9 +65,9 @@ def test_detect_multiple_pins():
 
 
 def test_small_objects_filtered():
-    """Test that objects below MIN_PIN_AREA are ignored."""
+    """Test that objects below settings.min_pin_area are ignored."""
     frame = _make_frame()
-    # Draw a tiny white dot (well below MIN_PIN_AREA)
+    # Draw a tiny white dot (well below settings.min_pin_area)
     _draw_white_rect(frame, 100, 100, 5, 5)
     region = Region(x=0, y=0, w=640, h=480)
     count, boxes = detect_pins(frame, region)
@@ -77,7 +77,7 @@ def test_small_objects_filtered():
 def test_pins_outside_region_ignored():
     """Test that pins outside the region are not counted."""
     frame = _make_frame()
-    size = int(MIN_PIN_AREA ** 0.5) + 10
+    size = int(settings.min_pin_area ** 0.5) + 10
     # Place pin at x=400, but region only covers 0-200
     _draw_white_rect(frame, 400, 100, size, size)
     region = Region(x=0, y=0, w=200, h=480)
@@ -88,7 +88,7 @@ def test_pins_outside_region_ignored():
 def test_pins_inside_region_counted():
     """Test that pins inside the region are counted."""
     frame = _make_frame()
-    size = int(MIN_PIN_AREA ** 0.5) + 10
+    size = int(settings.min_pin_area ** 0.5) + 10
     _draw_white_rect(frame, 50, 50, size, size)
     # Region only covers left portion
     region = Region(x=0, y=0, w=200, h=200)
@@ -99,7 +99,7 @@ def test_pins_inside_region_counted():
 def test_bounding_boxes_in_frame_coords():
     """Test that returned boxes use full-frame coordinates."""
     frame = _make_frame()
-    size = int(MIN_PIN_AREA ** 0.5) + 10
+    size = int(settings.min_pin_area ** 0.5) + 10
     _draw_white_rect(frame, 150, 150, size, size)
     region = Region(x=100, y=100, w=200, h=200)
     count, boxes = detect_pins(frame, region)

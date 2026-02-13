@@ -3,13 +3,7 @@
 import cv2
 import numpy as np
 
-from config import (
-    HSV_LOWER,
-    HSV_UPPER,
-    MIN_PIN_AREA,
-    MORPH_KERNEL_SIZE,
-    Region,
-)
+from config import Region, settings
 
 
 def detect_pins(
@@ -68,12 +62,12 @@ def _threshold_white(roi: np.ndarray) -> np.ndarray:
     hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(
         hsv,
-        np.array(HSV_LOWER),
-        np.array(HSV_UPPER),
+        np.array(settings.hsv_lower),
+        np.array(settings.hsv_upper),
     )
     kernel = cv2.getStructuringElement(
         cv2.MORPH_ELLIPSE,
-        (MORPH_KERNEL_SIZE, MORPH_KERNEL_SIZE),
+        (settings.morph_kernel_size, settings.morph_kernel_size),
     )
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
@@ -102,7 +96,7 @@ def _find_pin_contours(
     )
     boxes = []
     for contour in contours:
-        if cv2.contourArea(contour) >= MIN_PIN_AREA:
+        if cv2.contourArea(contour) >= settings.min_pin_area:
             x, y, w, h = cv2.boundingRect(contour)
             boxes.append((
                 x + region.x,

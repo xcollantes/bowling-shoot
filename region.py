@@ -3,14 +3,7 @@
 import cv2
 import numpy as np
 
-from config import (
-    COLOR_LEFT,
-    COLOR_RIGHT,
-    COLOR_TEXT,
-    MIN_REGION_SIZE,
-    WINDOW_NAME,
-    Region,
-)
+from config import Region, settings
 
 
 def select_regions(
@@ -39,13 +32,13 @@ def select_regions(
         "regions": [],
     }
 
-    cv2.namedWindow(WINDOW_NAME)
+    cv2.namedWindow(settings.window_name)
     cv2.setMouseCallback(
-        WINDOW_NAME, _mouse_callback, state
+        settings.window_name, _mouse_callback, state
     )
 
     labels = ["LEFT", "RIGHT"]
-    colors = [COLOR_LEFT, COLOR_RIGHT]
+    colors = [settings.color_left, settings.color_right]
 
     while len(state["regions"]) < 2:
         ret, frame = cap.read()
@@ -58,7 +51,7 @@ def select_regions(
         )
         _draw_prompt(frame, f"Draw {labels[idx]} region")
 
-        cv2.imshow(WINDOW_NAME, frame)
+        cv2.imshow(settings.window_name, frame)
         key = cv2.waitKey(1) & 0xFF
 
         if key == ord("q"):
@@ -122,7 +115,7 @@ def _build_region(
     y2 = max(start[1], end[1])
     w = x2 - x1
     h = y2 - y1
-    if w < MIN_REGION_SIZE or h < MIN_REGION_SIZE:
+    if w < settings.min_region_size or h < settings.min_region_size:
         return None
     return Region(x=x1, y=y1, w=w, h=h)
 
@@ -179,7 +172,7 @@ def _draw_prompt(frame: np.ndarray, text: str) -> None:
     prompt = f"{text} (click & drag) | R=reset | Q=quit"
     cv2.putText(
         frame, prompt, (10, h - 15),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.6, COLOR_TEXT, 1,
+        cv2.FONT_HERSHEY_SIMPLEX, 0.6, settings.color_text, 1,
     )
 
 
@@ -211,9 +204,9 @@ def _show_confirmation(
             frame,
             "Press ENTER to confirm | R to redraw",
             (10, h - 15),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.6, COLOR_TEXT, 1,
+            cv2.FONT_HERSHEY_SIMPLEX, 0.6, settings.color_text, 1,
         )
-        cv2.imshow(WINDOW_NAME, frame)
+        cv2.imshow(settings.window_name, frame)
 
         key = cv2.waitKey(1) & 0xFF
         if key == 13:  # Enter

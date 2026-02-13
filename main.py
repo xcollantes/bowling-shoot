@@ -9,15 +9,7 @@ import sys
 
 import cv2
 
-from config import (
-    COLOR_LEFT,
-    COLOR_RIGHT,
-    DEFAULT_CAMERA_INDEX,
-    FRAME_HEIGHT,
-    FRAME_WIDTH,
-    WINDOW_NAME,
-    ZERO_PIN_FRAME_THRESHOLD,
-)
+from config import settings
 from detector import detect_pins
 from overlay import (
     draw_instructions,
@@ -26,7 +18,8 @@ from overlay import (
     draw_scoreboard,
     draw_winner,
 )
-from region import Region, _RedrawRequested, select_regions
+from config import Region
+from region import _RedrawRequested, select_regions
 from scoreboard import Scoreboard
 
 logging.basicConfig(
@@ -37,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 def open_camera(
-    device_index: int = DEFAULT_CAMERA_INDEX,
+    device_index: int = settings.camera_index,
 ) -> cv2.VideoCapture:
     """
     Open and configure the camera.
@@ -56,8 +49,8 @@ def open_camera(
         raise RuntimeError(
             f"Cannot open camera at index {device_index}"
         )
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, settings.frame_width)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, settings.frame_height)
     logger.info(
         "Camera opened: %dx%d",
         int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
@@ -99,10 +92,10 @@ def calibrate_pins(
 
         frame = draw_regions(frame, left_region, right_region)
         frame = draw_pin_markers(
-            frame, left_boxes, COLOR_LEFT
+            frame, left_boxes, settings.color_left
         )
         frame = draw_pin_markers(
-            frame, right_boxes, COLOR_RIGHT
+            frame, right_boxes, settings.color_right
         )
 
         info = (
@@ -119,7 +112,7 @@ def calibrate_pins(
             "Adjust pins until counts are correct",
         )
 
-        cv2.imshow(WINDOW_NAME, frame)
+        cv2.imshow(settings.window_name, frame)
         key = cv2.waitKey(1) & 0xFF
 
         if key == ord(" "):
@@ -144,7 +137,7 @@ def run_round(
     Continuously captures frames, detects pins in both
     regions, draws overlays, and checks for a winner.
     A winner is declared when one side has zero pins for
-    ZERO_PIN_FRAME_THRESHOLD consecutive frames.
+    settings.zero_pin_frame_threshold consecutive frames.
 
     Args:
         cap: Opened VideoCapture.
@@ -188,10 +181,10 @@ def run_round(
             frame, left_region, right_region
         )
         frame = draw_pin_markers(
-            frame, left_boxes, COLOR_LEFT
+            frame, left_boxes, settings.color_left
         )
         frame = draw_pin_markers(
-            frame, right_boxes, COLOR_RIGHT
+            frame, right_boxes, settings.color_right
         )
         frame = draw_scoreboard(
             frame, left_pins, right_pins, scoreboard
@@ -201,21 +194,21 @@ def run_round(
         )
 
         # Check for winner
-        if left_zero_count >= ZERO_PIN_FRAME_THRESHOLD:
+        if left_zero_count >= settings.zero_pin_frame_threshold:
             logger.info("LEFT side wins the round!")
             frame = draw_winner(frame, "left")
-            cv2.imshow(WINDOW_NAME, frame)
+            cv2.imshow(settings.window_name, frame)
             cv2.waitKey(3000)
             return "left"
 
-        if right_zero_count >= ZERO_PIN_FRAME_THRESHOLD:
+        if right_zero_count >= settings.zero_pin_frame_threshold:
             logger.info("RIGHT side wins the round!")
             frame = draw_winner(frame, "right")
-            cv2.imshow(WINDOW_NAME, frame)
+            cv2.imshow(settings.window_name, frame)
             cv2.waitKey(3000)
             return "right"
 
-        cv2.imshow(WINDOW_NAME, frame)
+        cv2.imshow(settings.window_name, frame)
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
             return None
@@ -331,7 +324,7 @@ def _post_round_menu(
             frame,
             "SPACE=next round | S=reset scores | Q=quit",
         )
-        cv2.imshow(WINDOW_NAME, frame)
+        cv2.imshow(settings.window_name, frame)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord(" "):

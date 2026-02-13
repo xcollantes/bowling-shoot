@@ -5,7 +5,7 @@ import logging as _logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-from config import SCORES_FILE
+from config import settings
 
 logger = _logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class Scoreboard:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
 
-    def save(self, path: str = SCORES_FILE) -> None:
+    def save(self, path: str = settings.scores_file) -> None:
         """
         Save scoreboard to JSON file.
 
@@ -60,7 +60,7 @@ class Scoreboard:
             json.dump(data, f, indent=4)
 
     @classmethod
-    def load(cls, path: str = SCORES_FILE) -> "Scoreboard":
+    def load(cls, path: str = settings.scores_file) -> "Scoreboard":
         """
         Load scoreboard from JSON file.
 
