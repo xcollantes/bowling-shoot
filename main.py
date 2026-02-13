@@ -44,14 +44,10 @@ def open_source() -> cv2.VideoCapture:
     if settings.video_path:
         path = settings.video_path
         if not os.path.isfile(path):
-            raise RuntimeError(
-                f"Video file not found: {path}"
-            )
+            raise RuntimeError(f"Video file not found: {path}")
         cap = cv2.VideoCapture(path)
         if not cap.isOpened():
-            raise RuntimeError(
-                f"Cannot open video file: {path}"
-            )
+            raise RuntimeError(f"Cannot open video file: {path}")
         logger.info(
             "Video opened: %s (%dx%d)",
             path,
@@ -63,8 +59,7 @@ def open_source() -> cv2.VideoCapture:
     cap = cv2.VideoCapture(settings.camera_index)
     if not cap.isOpened():
         raise RuntimeError(
-            f"Cannot open camera at index "
-            f"{settings.camera_index}"
+            f"Cannot open camera at index {settings.camera_index}"
         )
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, settings.frame_width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, settings.frame_height)
