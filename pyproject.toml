@@ -11,10 +11,23 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=8.0.0",
-]
+dev = ["pytest>=8.0.0", "ruff>=0.14.11"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+# Ruff code linter and formatter configuration
+[tool.ruff]
+line-length = 80
+
+[tool.ruff.lint]
+extend-select = [
+    "I", # isort
+    "D", # Docstrings. Define the type below.
+    #   "E501", # Line too long.
+]
+
+# Pydocstyle configuration for docstring formatting conventions
+[tool.ruff.lint.pydocstyle]
+convention = "google"
