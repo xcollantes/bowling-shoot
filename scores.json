@@ -1,0 +1,11 @@
+{
+    "left_wins": 1,
+    "right_wins": 0,
+    "rounds": [
+        {
+            "round": 1,
+            "winner": "left",
+            "timestamp": "2026-02-13T06:02:18.749853+00:00"
+        }
+    ]
+}

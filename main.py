@@ -5,6 +5,7 @@ regions and determines which side clears their pins first.
 """
 
 import logging
+import os
 import sys
 
 import cv2
@@ -28,23 +29,43 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def open_camera(
-    device_index: int = settings.camera_index,
-) -> cv2.VideoCapture:
-    """Open and configure the camera.
+def open_source() -> cv2.VideoCapture:
+    """Open a video source (camera or video file).
 
-    Args:
-        device_index: Camera device index.
+    Uses ``settings.video_path`` when set, otherwise falls
+    back to the camera at ``settings.camera_index``.
 
     Returns:
         Opened VideoCapture object.
 
     Raises:
-        RuntimeError: If camera cannot be opened.
+        RuntimeError: If the source cannot be opened.
     """
-    cap = cv2.VideoCapture(device_index)
+    if settings.video_path:
+        path = settings.video_path
+        if not os.path.isfile(path):
+            raise RuntimeError(
+                f"Video file not found: {path}"
+            )
+        cap = cv2.VideoCapture(path)
+        if not cap.isOpened():
+            raise RuntimeError(
+                f"Cannot open video file: {path}"
+            )
+        logger.info(
+            "Video opened: %s (%dx%d)",
+            path,
+            int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+        )
+        return cap
+
+    cap = cv2.VideoCapture(settings.camera_index)
     if not cap.isOpened():
-        raise RuntimeError(f"Cannot open camera at index {device_index}")
+        raise RuntimeError(
+            f"Cannot open camera at index "
+            f"{settings.camera_index}"
+        )
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, settings.frame_width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, settings.frame_height)
     logger.info(
@@ -219,7 +240,7 @@ def main() -> None:
         4. Loop: calibrate -> run round -> record winner
         5. Save scoreboard on exit
     """
-    cap = open_camera()
+    cap = open_source()
     scoreboard = Scoreboard.load()
 
     try:
