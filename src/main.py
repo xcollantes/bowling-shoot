@@ -29,6 +29,28 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def _frame_delay_ms(cap: cv2.VideoCapture) -> int:
+    """Return the per-frame delay in ms for waitKey.
+
+    For video files, computes the delay from the video FPS and
+    ``settings.playback_speed``. For cameras, returns 1 (no
+    artificial delay).
+
+    Args:
+        cap: Opened VideoCapture.
+
+    Returns:
+        Delay in milliseconds (minimum 1).
+    """
+    if not settings.video_path:
+        return 1
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    if fps <= 0:
+        fps = 30.0
+    delay = int(1000 / (fps * settings.playback_speed))
+    return max(delay, 1)
+
+
 def open_source() -> cv2.VideoCapture:
     """Open a video source (camera or video file).
 
@@ -133,6 +155,7 @@ def run_round(
     left_region: Region,
     right_region: Region,
     scoreboard: Scoreboard,
+    delay: int = 1,
 ) -> str | None:
     """Run a single round of pin tracking.
 
@@ -146,6 +169,7 @@ def run_round(
         left_region: Left table region.
         right_region: Right table region.
         scoreboard: Current scoreboard for display.
+        delay: Frame delay in ms for waitKey.
 
     Returns:
         "left" or "right" if a winner is detected,
@@ -197,7 +221,7 @@ def run_round(
             return "right"
 
         cv2.imshow(settings.window_name, frame)
-        key = cv2.waitKey(1) & 0xFF
+        key = cv2.waitKey(delay) & 0xFF
         if key == ord("q"):
             return None
 
@@ -234,6 +258,7 @@ def main() -> None:
         5. Save scoreboard on exit
     """
     cap = open_source()
+    delay = _frame_delay_ms(cap)
     scoreboard = Scoreboard.load()
 
     try:
@@ -252,11 +277,15 @@ def main() -> None:
 
     try:
         while True:
-            left_count, right_count = calibrate_pins(cap, left_region, right_region)
+            left_count, right_count = calibrate_pins(
+                cap, left_region, right_region,
+            )
             if left_count == -1:
                 break
 
-            winner = run_round(cap, left_region, right_region, scoreboard)
+            winner = run_round(
+                cap, left_region, right_region, scoreboard, delay,
+            )
 
             if winner:
                 scoreboard.record_win(winner)

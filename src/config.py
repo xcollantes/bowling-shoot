@@ -21,12 +21,15 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_prefix="BOWLING_",
         env_nested_delimiter="__",
     )
 
     # Video source: path to a video file, or empty for camera
     video_path: str = ""
+
+    # Playback speed for video files (1.0 = real-time,
+    # 0.5 = half speed, 2.0 = double speed). Ignored for camera.
+    playback_speed: float = 0.5
 
     # Camera (used when video_path is empty)
     camera_index: int = 0
