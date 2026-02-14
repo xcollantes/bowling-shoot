@@ -15,7 +15,7 @@ dev = ["pytest>=8.0.0", "ruff>=0.14.11"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["."]
+pythonpath = ["src"]
 
 # Ruff code linter and formatter configuration
 [tool.ruff]
