@@ -34,7 +34,7 @@ def select_regions(
     cv2.namedWindow(settings.window_name)
     cv2.setMouseCallback(settings.window_name, _mouse_callback, state)
 
-    labels = ["LEFT", "RIGHT"]
+    labels = ["PLAYER 1", "PLAYER 2"]
     colors = [settings.color_left, settings.color_right]
 
     while len(state["regions"]) < 2:
@@ -125,7 +125,7 @@ def _draw_selection_overlay(
     Args:
         frame: The current video frame.
         state: Mouse callback state dict.
-        labels: Region labels ("LEFT", "RIGHT").
+        labels: Region labels ("PLAYER 1", "PLAYER 2").
         colors: Colors for each region.
 
     Returns:

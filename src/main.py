@@ -300,7 +300,7 @@ def _post_round_menu(
         frame = draw_scoreboard(frame, 0, 0, scoreboard)
         frame = draw_instructions(
             frame,
-            "SPACE=next round | S=reset scores | Q=quit",
+            "SPACE=next round | s=reset scores | q=quit",
         )
         cv2.imshow(settings.window_name, frame)
 
