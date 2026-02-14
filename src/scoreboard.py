@@ -5,7 +5,7 @@ import logging as _logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-from config import settings
+from src.config import settings
 
 logger = _logging.getLogger(__name__)
 

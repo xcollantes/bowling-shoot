@@ -10,17 +10,17 @@ import sys
 
 import cv2
 
-from config import Region, settings
-from detector import detect_pins
-from overlay import (
+from src.config import Region, settings
+from src.detector import detect_pins
+from src.overlay import (
     draw_instructions,
     draw_pin_markers,
     draw_regions,
     draw_scoreboard,
     draw_winner,
 )
-from region import _RedrawRequested, select_regions
-from scoreboard import Scoreboard
+from src.region import _RedrawRequested, select_regions
+from src.scoreboard import Scoreboard
 
 logging.basicConfig(
     level=logging.INFO,
@@ -58,9 +58,7 @@ def open_source() -> cv2.VideoCapture:
 
     cap = cv2.VideoCapture(settings.camera_index)
     if not cap.isOpened():
-        raise RuntimeError(
-            f"Cannot open camera at index {settings.camera_index}"
-        )
+        raise RuntimeError(f"Cannot open camera at index {settings.camera_index}")
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, settings.frame_width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, settings.frame_height)
     logger.info(
@@ -254,9 +252,7 @@ def main() -> None:
 
     try:
         while True:
-            left_count, right_count = calibrate_pins(
-                cap, left_region, right_region
-            )
+            left_count, right_count = calibrate_pins(cap, left_region, right_region)
             if left_count == -1:
                 break
 

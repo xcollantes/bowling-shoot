@@ -1,6 +1,6 @@
 """Tests for config module."""
 
-from config import Region, settings
+from src.config import Region, settings
 
 
 def test_region_creation():

@@ -3,8 +3,8 @@
 import cv2
 import numpy as np
 
-from config import Region, settings
-from detector import detect_pins
+from src.config import Region, settings
+from src.detector import detect_pins
 
 
 def _make_frame(

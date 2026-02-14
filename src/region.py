@@ -3,7 +3,7 @@
 import cv2
 import numpy as np
 
-from config import Region, settings
+from src.config import Region, settings
 
 
 def select_regions(

@@ -5,8 +5,7 @@ import os
 import tempfile
 
 import pytest
-
-from scoreboard import Scoreboard
+from src.scoreboard import Scoreboard
 
 
 @pytest.fixture

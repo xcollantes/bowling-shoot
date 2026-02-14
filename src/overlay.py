@@ -3,8 +3,8 @@
 import cv2
 import numpy as np
 
-from config import Region, settings
-from scoreboard import Scoreboard
+from src.config import Region, settings
+from src.scoreboard import Scoreboard
 
 
 def draw_regions(
