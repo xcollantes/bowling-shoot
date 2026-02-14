@@ -1,11 +1,36 @@
 {
-    "left_wins": 1,
-    "right_wins": 0,
+    "left_wins": 5,
+    "right_wins": 1,
     "rounds": [
         {
             "round": 1,
             "winner": "left",
             "timestamp": "2026-02-13T06:02:18.749853+00:00"
+        },
+        {
+            "round": 2,
+            "winner": "right",
+            "timestamp": "2026-02-14T07:41:11.319330+00:00"
+        },
+        {
+            "round": 3,
+            "winner": "left",
+            "timestamp": "2026-02-14T07:41:26.987627+00:00"
+        },
+        {
+            "round": 4,
+            "winner": "left",
+            "timestamp": "2026-02-14T08:01:09.059147+00:00"
+        },
+        {
+            "round": 5,
+            "winner": "left",
+            "timestamp": "2026-02-14T08:01:50.634408+00:00"
+        },
+        {
+            "round": 6,
+            "winner": "left",
+            "timestamp": "2026-02-14T08:02:02.479462+00:00"
         }
     ]
 }

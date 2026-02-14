@@ -36,24 +36,41 @@ def select_regions(
 
     labels = ["PLAYER 1", "PLAYER 2"]
     colors = [settings.color_left, settings.color_right]
+    is_video = bool(settings.video_path)
+    paused = False
+
+    # Read the first frame so we always have something to show.
+    ret, raw_frame = cap.read()
+    if not ret:
+        raise ValueError("Camera feed lost.")
+    if is_video:
+        paused = True
 
     while len(state["regions"]) < 2:
-        ret, frame = cap.read()
-        if not ret:
-            raise ValueError("Camera feed lost.")
+        if not paused:
+            ret, raw_frame = cap.read()
+            if not ret:
+                raise ValueError("Camera feed lost.")
 
         idx = len(state["regions"])
-        frame = _draw_selection_overlay(frame, state, labels, colors)
-        _draw_prompt(frame, f"Draw {labels[idx]} region")
+        frame = _draw_selection_overlay(
+            raw_frame.copy(), state, labels, colors,
+        )
+        hint = f"Draw {labels[idx]} region"
+        if is_video:
+            hint = ("PAUSED | " if paused else "") + hint
+        _draw_prompt(frame, hint, show_pause=is_video)
 
         cv2.imshow(settings.window_name, frame)
-        key = cv2.waitKey(1) & 0xFF
+        key = cv2.waitKey(0 if paused else 1) & 0xFF
 
         if key == ord("q"):
             raise ValueError("User quit during setup.")
         if key == ord("r"):
             state["regions"].clear()
             state["drawing"] = False
+        if is_video and key == ord(" "):
+            paused = not paused
 
     # Confirmation screen
     _show_confirmation(cap, state, labels, colors)
@@ -163,10 +180,15 @@ def _draw_selection_overlay(
     return frame
 
 
-def _draw_prompt(frame: np.ndarray, text: str) -> None:
+def _draw_prompt(
+    frame: np.ndarray,
+    text: str,
+    show_pause: bool = False,
+) -> None:
     """Draw setup prompt text at the bottom of the frame."""
     h = frame.shape[0]
-    prompt = f"{text} (click & drag) | R=reset | Q=quit"
+    pause_hint = " | SPACE=pause/play" if show_pause else ""
+    prompt = f"{text} (click & drag) | R=reset{pause_hint} | Q=quit"
     cv2.putText(
         frame,
         prompt,
@@ -192,16 +214,30 @@ def _show_confirmation(
         labels: Region labels.
         colors: Region colors.
     """
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+    is_video = bool(settings.video_path)
+    paused = False
 
-        frame = _draw_selection_overlay(frame, state, labels, colors)
+    ret, raw_frame = cap.read()
+    if not ret:
+        return
+    if is_video:
+        paused = True
+
+    while True:
+        if not paused:
+            ret, raw_frame = cap.read()
+            if not ret:
+                break
+
+        frame = _draw_selection_overlay(
+            raw_frame.copy(), state, labels, colors,
+        )
         h = frame.shape[0]
+        pause_hint = " | SPACE=pause/play" if is_video else ""
+        status = "PAUSED | " if paused else ""
         cv2.putText(
             frame,
-            "Press ENTER to confirm | R to redraw",
+            f"{status}Press ENTER to confirm | R to redraw{pause_hint}",
             (10, h - 15),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.6,
@@ -210,7 +246,7 @@ def _show_confirmation(
         )
         cv2.imshow(settings.window_name, frame)
 
-        key = cv2.waitKey(1) & 0xFF
+        key = cv2.waitKey(0 if paused else 1) & 0xFF
         if key == 13:  # Enter
             break
         if key == ord("r"):
@@ -218,6 +254,8 @@ def _show_confirmation(
             state["drawing"] = False
             # Re-enter full selection flow
             raise _RedrawRequested()
+        if is_video and key == ord(" "):
+            paused = not paused
 
 
 class _RedrawRequested(Exception):

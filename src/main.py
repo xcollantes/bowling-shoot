@@ -109,21 +109,33 @@ def calibrate_pins(
     Returns:
         Tuple of (left_pin_count, right_pin_count).
     """
+    is_video = bool(settings.video_path)
+    need_frame = True
+
     while True:
-        ret, frame = cap.read()
-        if not ret:
-            return 0, 0
+        if need_frame:
+            ret, frame = cap.read()
+            if not ret:
+                return 0, 0
+            # For video files, pause on the first frame so the
+            # user can inspect it without burning through frames.
+            if is_video:
+                need_frame = False
 
         left_pins, left_boxes = detect_pins(frame, left_region)
         right_pins, right_boxes = detect_pins(frame, right_region)
 
-        frame = draw_regions(frame, left_region, right_region)
-        frame = draw_pin_markers(frame, left_boxes, settings.color_left)
-        frame = draw_pin_markers(frame, right_boxes, settings.color_right)
+        display = draw_regions(frame.copy(), left_region, right_region)
+        display = draw_pin_markers(
+            display, left_boxes, settings.color_left,
+        )
+        display = draw_pin_markers(
+            display, right_boxes, settings.color_right,
+        )
 
         info = f"Detected: LEFT={left_pins} RIGHT={right_pins}"
         cv2.putText(
-            frame,
+            display,
             info,
             (10, 35),
             cv2.FONT_HERSHEY_SIMPLEX,
@@ -131,13 +143,14 @@ def calibrate_pins(
             (255, 255, 255),
             2,
         )
-        frame = draw_instructions(
-            frame,
-            "SPACE=start round | Q=quit | Adjust pins until counts are correct",
-        )
+        hint = "SPACE=start round | Q=quit"
+        if is_video:
+            hint += " | N=next frame"
+        hint += " | Adjust pins until counts are correct"
+        display = draw_instructions(display, hint)
 
-        cv2.imshow(settings.window_name, frame)
-        key = cv2.waitKey(1) & 0xFF
+        cv2.imshow(settings.window_name, display)
+        key = cv2.waitKey(0 if is_video else 1) & 0xFF
 
         if key == ord(" "):
             logger.info(
@@ -148,6 +161,8 @@ def calibrate_pins(
             return left_pins, right_pins
         if key == ord("q"):
             return -1, -1
+        if is_video and key == ord("n"):
+            need_frame = True
 
 
 def run_round(
@@ -177,53 +192,74 @@ def run_round(
     """
     left_zero_count = 0
     right_zero_count = 0
+    paused = False
+    is_video = bool(settings.video_path)
 
     while True:
-        ret, frame = cap.read()
-        if not ret:
-            logger.error("Camera feed lost during round.")
-            return None
+        if not paused:
+            ret, frame = cap.read()
+            if not ret:
+                logger.error("Camera feed lost during round.")
+                return None
 
-        left_pins, left_boxes = detect_pins(frame, left_region)
-        right_pins, right_boxes = detect_pins(frame, right_region)
+            left_pins, left_boxes = detect_pins(frame, left_region)
+            right_pins, right_boxes = detect_pins(
+                frame, right_region,
+            )
 
-        # Track consecutive zero-pin frames
-        if left_pins == 0:
-            left_zero_count += 1
-        else:
-            left_zero_count = 0
+            # Track consecutive zero-pin frames
+            if left_pins == 0:
+                left_zero_count += 1
+            else:
+                left_zero_count = 0
 
-        if right_pins == 0:
-            right_zero_count += 1
-        else:
-            right_zero_count = 0
+            if right_pins == 0:
+                right_zero_count += 1
+            else:
+                right_zero_count = 0
 
-        # Draw overlays
-        frame = draw_regions(frame, left_region, right_region)
-        frame = draw_pin_markers(frame, left_boxes, settings.color_left)
-        frame = draw_pin_markers(frame, right_boxes, settings.color_right)
-        frame = draw_scoreboard(frame, left_pins, right_pins, scoreboard)
-        frame = draw_instructions(frame, "ROUND IN PROGRESS | Q=quit")
+            # Draw overlays
+            frame = draw_regions(frame, left_region, right_region)
+            frame = draw_pin_markers(
+                frame, left_boxes, settings.color_left,
+            )
+            frame = draw_pin_markers(
+                frame, right_boxes, settings.color_right,
+            )
+            frame = draw_scoreboard(
+                frame, left_pins, right_pins, scoreboard,
+            )
+
+        # Build instruction text
+        hint = "ROUND IN PROGRESS"
+        if is_video:
+            hint += " | PAUSED" if paused else ""
+            hint += " | SPACE=pause/play"
+        hint += " | Q=quit"
+        display = draw_instructions(frame.copy(), hint)
 
         # Check for winner
         if left_zero_count >= settings.zero_pin_frame_threshold:
             logger.info("LEFT side wins the round!")
-            frame = draw_winner(frame, "left")
-            cv2.imshow(settings.window_name, frame)
+            display = draw_winner(display, "left")
+            cv2.imshow(settings.window_name, display)
             cv2.waitKey(3000)
             return "left"
 
         if right_zero_count >= settings.zero_pin_frame_threshold:
             logger.info("RIGHT side wins the round!")
-            frame = draw_winner(frame, "right")
-            cv2.imshow(settings.window_name, frame)
+            display = draw_winner(display, "right")
+            cv2.imshow(settings.window_name, display)
             cv2.waitKey(3000)
             return "right"
 
-        cv2.imshow(settings.window_name, frame)
-        key = cv2.waitKey(delay) & 0xFF
+        cv2.imshow(settings.window_name, display)
+        wait = 0 if paused else delay
+        key = cv2.waitKey(wait) & 0xFF
         if key == ord("q"):
             return None
+        if is_video and key == ord(" "):
+            paused = not paused
 
 
 def _select_regions_with_redraw(
