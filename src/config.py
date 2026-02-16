@@ -59,6 +59,15 @@ class Settings(BaseSettings):
     color_winner: tuple[int, int, int] = (0, 255, 0)
     color_bg: tuple[int, int, int] = (0, 0, 0)
 
+    # Auto-detect regions from initial pin positions
+    auto_detect_regions: bool = True
+
+    # Pixels of padding around detected pin cluster
+    region_padding: int = 40
+
+    # Minimum detections per side to accept auto-detection
+    min_pins_per_side: int = 1
+
     # Minimum region size (pixels) to accept during selection
     min_region_size: int = 50
 

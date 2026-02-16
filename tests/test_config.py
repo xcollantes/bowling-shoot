@@ -43,3 +43,6 @@ def test_settings_defaults():
     assert settings.zero_pin_frame_threshold == 10
     assert settings.scores_file == "scores.json"
     assert settings.min_region_size == 50
+    assert settings.auto_detect_regions is True
+    assert settings.region_padding == 40
+    assert settings.min_pins_per_side == 1

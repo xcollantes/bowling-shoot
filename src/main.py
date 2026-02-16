@@ -9,7 +9,9 @@ import os
 import sys
 
 import cv2
+import numpy as np
 
+from src.auto_region import detect_regions
 from src.config import Region, settings
 from src.detector import detect_pins
 from src.overlay import (
@@ -262,6 +264,104 @@ def run_round(
             paused = not paused
 
 
+def _auto_or_manual_regions(
+    cap: cv2.VideoCapture,
+) -> tuple[Region, Region]:
+    """Try auto-detection, fall back to manual selection.
+
+    When ``settings.auto_detect_regions`` is enabled, reads a
+    frame and attempts to find pin clusters on each side. On
+    success the user is shown the result for confirmation.
+    Falls back to manual drawing on failure or user rejection.
+
+    Args:
+        cap: Opened VideoCapture.
+
+    Returns:
+        Tuple of (left_region, right_region).
+
+    Raises:
+        ValueError: If user quits during setup.
+    """
+    if settings.auto_detect_regions:
+        ret, frame = cap.read()
+        if ret:
+            result = detect_regions(frame)
+            if result is not None:
+                left, right = result
+                accepted = _confirm_auto_regions(
+                    cap, frame, left, right,
+                )
+                if accepted:
+                    return left, right
+
+    return _select_regions_with_redraw(cap)
+
+
+def _confirm_auto_regions(
+    cap: cv2.VideoCapture,
+    frame: np.ndarray,
+    left: Region,
+    right: Region,
+) -> bool:
+    """Show auto-detected regions and wait for user decision.
+
+    Displays the detected regions with pin markers overlaid.
+    The user can accept (ENTER), redraw manually (R), or
+    quit (Q).
+
+    Args:
+        cap: Opened VideoCapture.
+        frame: The frame used for detection.
+        left: Auto-detected left region.
+        right: Auto-detected right region.
+
+    Returns:
+        True if the user accepts the regions.
+
+    Raises:
+        ValueError: If user presses Q to quit.
+    """
+    is_video = bool(settings.video_path)
+
+    while True:
+        display = draw_regions(frame.copy(), left, right)
+
+        left_pins, left_boxes = detect_pins(frame, left)
+        right_pins, right_boxes = detect_pins(frame, right)
+        display = draw_pin_markers(
+            display, left_boxes, settings.color_left,
+        )
+        display = draw_pin_markers(
+            display, right_boxes, settings.color_right,
+        )
+
+        info = (
+            f"Auto-detected: LEFT={left_pins} pins"
+            f"  RIGHT={right_pins} pins"
+        )
+        cv2.putText(
+            display, info, (10, 35),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.8,
+            (255, 255, 255), 2,
+        )
+        display = draw_instructions(
+            display,
+            "ENTER=accept | R=draw manually | Q=quit",
+        )
+        cv2.imshow(settings.window_name, display)
+
+        key = cv2.waitKey(0 if is_video else 1) & 0xFF
+        if key == 13:  # Enter
+            logger.info("Auto-detected regions accepted.")
+            return True
+        if key == ord("r"):
+            logger.info("User rejected auto-detected regions.")
+            return False
+        if key == ord("q"):
+            raise ValueError("User quit during setup.")
+
+
 def _select_regions_with_redraw(
     cap: cv2.VideoCapture,
 ) -> tuple[Region, Region]:
@@ -298,7 +398,7 @@ def main() -> None:
     scoreboard = Scoreboard.load()
 
     try:
-        left_region, right_region = _select_regions_with_redraw(cap)
+        left_region, right_region = _auto_or_manual_regions(cap)
     except ValueError as e:
         logger.info("Setup cancelled: %s", e)
         cap.release()
